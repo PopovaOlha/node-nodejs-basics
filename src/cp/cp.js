@@ -7,6 +7,11 @@ const spawnChildProcess = async args => {
 
 	process.stdin.pipe(childProcess.stdin)
 	childProcess.stdout.pipe(process.stdout)
+	childProcess.stderr.pipe(process.stderr)
+
+	childProcess.on('error', error => {
+		console.error(`Error spawning child process: ${error.message}`)
+	})
 
 	await new Promise(resolve => {
 		childProcess.on('exit', resolve)
