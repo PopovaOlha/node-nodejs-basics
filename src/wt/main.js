@@ -5,7 +5,7 @@ import { Worker } from 'worker_threads'
 
 const performCalculations = async () => {
 	const numCores = os.cpus().length
-	const results = []
+	const results = new Array(numCores)
 
 	const workers = Array.from({ length: numCores }, (_, index) => {
 		const currentDir = path.dirname(fileURLToPath(import.meta.url))
@@ -13,8 +13,9 @@ const performCalculations = async () => {
 		const worker = new Worker(workerPath, { workerData: 10 + index })
 
 		worker.on('message', message => {
-			results.push(message)
-			if (results.length === numCores) {
+			results[index] = message
+
+			if (results.filter(result => result !== undefined).length === numCores) {
 				console.log(results)
 			}
 		})
