@@ -1,21 +1,36 @@
-import { createReadStream, createWriteStream } from 'node:fs';
+import { createReadStream, createWriteStream, unlink } from 'node:fs';
 import { createGunzip } from 'node:zlib';
-import { resolve } from 'node:path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const decompress = async () => {
-    const sourcePath = resolve('src/zip/files/archive.gz');
-    const destinationPath = resolve('src/zip/files/fileToCompress.txt');
+  const inputPath = path.join(__dirname, 'files', 'archive.gz');
+  const outputPath = path.join(__dirname, 'files', 'fileToCompress.txt');
 
-    const readableStream = createReadStream(sourcePath);
-    const gunzipStream = createGunzip();
-    const writableStream = createWriteStream(destinationPath);
+  const readableStream = createReadStream(inputPath);
+  const writableStream = createWriteStream(outputPath);
+  const gunzip = createGunzip();
 
-    readableStream
-        .pipe(gunzipStream)
-        .pipe(writableStream)
-        .on('error', (error) => {
-            console.error('Error during decompression:', error.message);
-        });
+  readableStream.pipe(gunzip).pipe(writableStream);
+
+  writableStream.on('finish', () => {
+    unlink(inputPath, (err) => {
+      if (err) {
+        console.error('Error deleting archive:', err.message);
+      } else {
+        console.log('Decompression complete and archive deleted.');
+      }
+    });
+  });
+
+  writableStream.on('error', (error) => {
+    console.error('Error during decompression:', error.message);
+  });
 };
 
 await decompress();
+
+
