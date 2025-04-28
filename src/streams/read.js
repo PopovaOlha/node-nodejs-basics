@@ -1,17 +1,24 @@
-import { createReadStream } from 'node:fs';
-import { resolve } from 'node:path';
-import { stdout } from 'node:process';
+import { createReadStream } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const read = async () => {
-    const filePath = resolve('src/streams/files/fileToRead.txt');
-
-    const readableStream = createReadStream(filePath, { encoding: 'utf-8' });
-
-    readableStream.pipe(stdout);
-
-    readableStream.on('error', (error) => {
-        console.error('Error while reading the file:', error.message);
-    });
+    const readPath = path.join(__dirname, 'files', 'fileToRead.txt');
+    try {
+            const stream = createReadStream(readPath);
+    
+            stream.pipe(process.stdout)
+    
+            stream.on('error', (error) => {
+                console.error('Error reading the file:', error.message);
+            });
+    
+        } catch (error) {
+            console.error(error.message);
+        }
 };
 
 await read();
